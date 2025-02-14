@@ -8,6 +8,7 @@ import { router } from "./router";
 import { ServiceConfig as Cfg } from "./config";
 import { Logger } from "./logger";
 import mongoose from "mongoose";
+import { configure as configureAuthMiddleware } from "expense-app-auth-middleware";
 
 if (existsSync(".env")) {
   dotenv.config();
@@ -21,6 +22,10 @@ app.use(router);
 const server = app.listen(0, "localhost", async (err) => {
   const fullName = `${Cfg.serviceName}:${Cfg.serviceVersion}`;
   const logger = Logger(fullName);
+
+  configureAuthMiddleware({
+    secret: process.env.SECRET_KEY,
+  });
 
   if (err) {
     logger.error(`failed to start: ${err}`);
