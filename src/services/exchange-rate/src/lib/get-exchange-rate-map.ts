@@ -1,4 +1,4 @@
-import { ExchangeRateMap } from "../currency/service";
+import { ExchangeRateMap } from "../exchange-rate/service";
 import { CurrencyApiResponse } from "../models/currency-api";
 import { SUPPORTED_CURRENCIES } from "./supported-currencies";
 

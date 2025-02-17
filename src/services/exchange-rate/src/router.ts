@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getExchangeRate } from "./currency/controller";
+import { getExchangeRate } from "./exchange-rate/controller";
 
 export const router = Router();
 
