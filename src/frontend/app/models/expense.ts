@@ -15,3 +15,23 @@ export interface ExpenseRecord {
   category: string;
   paymentDetails: Payment;
 }
+
+export type CreateExpense = Pick<
+  ExpenseRecord,
+  | "date"
+  | "paymentMethod"
+  | "paidTo"
+  | "description"
+  | "category"
+  | "paymentDetails"
+>;
+
+export type UpdateExpense = Pick<
+  ExpenseRecord,
+  | "date"
+  | "paymentMethod"
+  | "paidTo"
+  | "description"
+  | "category"
+  | "paymentDetails"
+>;
