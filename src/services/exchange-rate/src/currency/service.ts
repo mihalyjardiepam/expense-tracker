@@ -51,8 +51,6 @@ export class ExchangeApiService implements ExchangeService {
 
     this.#memCache.set(today, map);
 
-    console.log({ map });
-
     return map.get(from).get(to);
   }
 

@@ -9,21 +9,18 @@ import { ServiceConfig as Cfg } from "./config";
 import { Logger } from "./logger";
 import mongoose from "mongoose";
 import { configure as configureAuthMiddleware } from "expense-app-auth-middleware";
-import { registerHeartbeat } from "./register-heartbeat";
 
 if (existsSync(".env")) {
   dotenv.config();
 }
 
-const SERVICE_REGISTRY_URI =
-  process.env.SERVICE_REGISTRY_URI || "http://localhost:9909/heartbeat";
-
 const app = express();
 app.use(helmet());
 app.use(morgan("tiny"));
+app.use(express.json());
 app.use(router);
 
-const server = app.listen(0, "localhost", async (err) => {
+const server = app.listen(9909, "localhost", async (err) => {
   const fullName = `${Cfg.serviceName}:${Cfg.serviceVersion}`;
   const logger = Logger(fullName);
 
@@ -37,9 +34,7 @@ const server = app.listen(0, "localhost", async (err) => {
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_URL, {
-      dbName: "ext_exchangeRates",
-    });
+    await mongoose.connect(process.env.MONGODB_URL);
     logger.log("MongoDB connected");
   } catch (error) {
     logger.error(`failed to connect to MongoDB: ${error}`);
@@ -51,13 +46,5 @@ const server = app.listen(0, "localhost", async (err) => {
     logger.log(
       `listening on ${address.family} http://${address.address}:${address.port}`,
     );
-
-    registerHeartbeat({
-      port: address.port.toString(),
-      serviceName: Cfg.serviceName,
-      serviceVersion: Cfg.serviceVersion,
-      serviceRegistryUri: SERVICE_REGISTRY_URI,
-      serviceSecret: process.env.SERVICE_SECRET,
-    });
   }
 });

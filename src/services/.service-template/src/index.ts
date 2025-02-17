@@ -9,10 +9,14 @@ import { ServiceConfig as Cfg } from "./config";
 import { Logger } from "./logger";
 import mongoose from "mongoose";
 import { configure as configureAuthMiddleware } from "expense-app-auth-middleware";
+import { registerHeartbeat } from "./register-heartbeat";
 
 if (existsSync(".env")) {
   dotenv.config();
 }
+
+const SERVICE_REGISTRY_URI =
+  process.env.SERVICE_REGISTRY_URI || "http://localhost:9909/heartbeat";
 
 const app = express();
 app.use(helmet());
@@ -45,5 +49,13 @@ const server = app.listen(0, "localhost", async (err) => {
     logger.log(
       `listening on ${address.family} http://${address.address}:${address.port}`,
     );
+
+    registerHeartbeat({
+      port: address.port.toString(),
+      serviceName: Cfg.serviceName,
+      serviceRegistryUri: SERVICE_REGISTRY_URI,
+      serviceSecret: process.env.SERVICE_SECRET,
+      serviceVersion: Cfg.serviceVersion,
+    });
   }
 });
