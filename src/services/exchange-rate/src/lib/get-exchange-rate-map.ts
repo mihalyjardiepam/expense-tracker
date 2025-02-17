@@ -1,11 +1,11 @@
-import { ExchangeRateMatrix } from "../currency/service";
+import { ExchangeRateMap } from "../currency/service";
 import { CurrencyApiResponse } from "../models/currency-api";
 import { SUPPORTED_CURRENCIES } from "./supported-currencies";
 
-export function getExchangeRateMatrix(
+export function getExchangeRateMap(
   data: CurrencyApiResponse[],
-): ExchangeRateMatrix {
-  const matrix: ExchangeRateMatrix = new Map();
+): ExchangeRateMap {
+  const map: ExchangeRateMap = new Map();
 
   let aggregatedCurrencyResponse: Omit<CurrencyApiResponse, "date"> =
     data.reduce((prev, curr) => {
@@ -17,14 +17,14 @@ export function getExchangeRateMatrix(
     }, {});
 
   for (let [key, value] of Object.entries(aggregatedCurrencyResponse)) {
-    if (!matrix.has(key)) {
-      matrix.set(key, new Map());
+    if (!map.has(key)) {
+      map.set(key, new Map());
     }
 
     for (let currency of SUPPORTED_CURRENCIES) {
-      matrix.get(key).set(currency, value[currency]);
+      map.get(key).set(currency, value[currency]);
     }
   }
 
-  return matrix;
+  return map;
 }

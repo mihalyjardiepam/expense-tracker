@@ -1,5 +1,5 @@
-import { getExchangeRateMatrix } from "../lib/get-exchange-rate-matrix";
-import { getToday } from "../lib/get-today";
+import { getExchangeRateMap } from "../lib/get-exchange-rate-map";
+import { getTodayFmt } from "../lib/get-today-fmt";
 import { SUPPORTED_CURRENCIES } from "../lib/supported-currencies";
 import { CurrencyApiResponse } from "../models/currency-api";
 import { ExchangeRate } from "../models/exchange-rate";
@@ -8,40 +8,60 @@ export interface ExchangeService {
   getExchangeRate(from: string, to: string): Promise<number>;
 }
 
-export type ExchangeRateMatrix = Map<string, Map<string, number>>;
+export type ExchangeRateMap = Map<string, Map<string, number>>;
 
 export class ExchangeApiService implements ExchangeService {
-  #cache: Map<string, ExchangeRateMatrix> = new Map();
-  #resolveExchangeRate: Promise<ExchangeRateMatrix> | undefined = undefined;
+  #memCache: Map<string, ExchangeRateMap> = new Map();
+
+  /**
+   * Used for "locking" the getExchangeRate method so there is only 1
+   * simultaneous fetch. This is to avoid duplicate exchange rate data in the
+   * DB.
+   *
+   * **NOTE: This is not a good solution.**
+   *
+   * A better solution would be to not allow the service to retrieve exchange
+   * rate data and instead have it throw an error if the exchange rate does
+   * not exist.
+   * Another process or service should handle the data fetch and inserts to DB,
+   * preferably when the data source gets updated with the new exchange rates.
+   */
+  #resolveExchangeRate: Promise<ExchangeRateMap> | undefined = undefined;
 
   async getExchangeRate(from: string, to: string): Promise<number> {
     if (from == to) {
       return 1;
     }
 
-    const today = getToday();
+    const today = getTodayFmt();
 
-    if (this.#cache[today]?.[from]?.[to] != undefined) {
-      return this.#cache[today][from][to];
+    if (this.#memCache[today]?.get(from)?.get(to) != undefined) {
+      return this.#memCache[today].get(from).get(to);
     }
 
+    // locking the process
     if (this.#resolveExchangeRate == undefined) {
       this.#resolveExchangeRate = this.#getExchangeRates(today);
     }
 
-    const matrix = await this.#resolveExchangeRate;
+    const map = await this.#resolveExchangeRate;
 
-    this.#cache.set(today, matrix);
+    // unlocking
+    this.#resolveExchangeRate = undefined;
 
-    return matrix[from][to];
+    this.#memCache.set(today, map);
+
+    console.log({ map });
+
+    return map.get(from).get(to);
   }
 
-  async #getExchangeRates(date: string): Promise<ExchangeRateMatrix> {
+  async #getExchangeRates(date: string): Promise<ExchangeRateMap> {
     const exchangeRate = await ExchangeRate.findOne({
       date,
     });
 
-    let exchangeRateMatrix: ExchangeRateMatrix;
+    let exchangeRateMap: ExchangeRateMap;
 
     if (exchangeRate == undefined) {
       const promises = SUPPORTED_CURRENCIES.map((currency) =>
@@ -55,19 +75,21 @@ export class ExchangeApiService implements ExchangeService {
         responses.map((response) => response.json()),
       );
 
-      let matrix = getExchangeRateMatrix(dataArray);
+      let map = getExchangeRateMap(dataArray);
 
       const exchangeRate = new ExchangeRate({
         date,
-        currencyMatrix: matrix,
+        exchangeRateMap: map,
       });
       await exchangeRate.save();
 
-      exchangeRateMatrix = matrix;
+      exchangeRateMap = map;
     } else {
-      exchangeRateMatrix = exchangeRate.currencyMatrix as ExchangeRateMatrix;
+      exchangeRateMap = exchangeRate.exchangeRateMap as ExchangeRateMap;
     }
 
-    return exchangeRateMatrix;
+    return exchangeRateMap;
   }
 }
+
+export const ExchangeRateService: ExchangeService = new ExchangeApiService();

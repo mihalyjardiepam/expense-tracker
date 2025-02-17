@@ -1,8 +1,8 @@
 import { CurrencyApiResponse } from "../models/currency-api";
-import { getExchangeRateMatrix } from "./get-exchange-rate-matrix";
+import { getExchangeRateMap } from "./get-exchange-rate-map";
 
 describe("", () => {
-  it("converts exchanges rates into a matrix from an array", () => {
+  it("converts exchanges rates into a map from an array", () => {
     const data: CurrencyApiResponse[] = [
       {
         date: "2025-01-01",
@@ -42,11 +42,11 @@ describe("", () => {
       },
     ];
 
-    const matrix = getExchangeRateMatrix(data);
+    const map = getExchangeRateMap(data);
 
-    expect(matrix.get("eur").get("huf")).toEqual(401.81);
-    expect(matrix.get("usd").get("huf")).toEqual(382.34);
-    expect(matrix.get("php").get("php")).toEqual(1);
-    expect(matrix.get("php").get("huf")).toEqual(6.62);
+    expect(map.get("eur").get("huf")).toEqual(401.81);
+    expect(map.get("usd").get("huf")).toEqual(382.34);
+    expect(map.get("php").get("php")).toEqual(1);
+    expect(map.get("php").get("huf")).toEqual(6.62);
   });
 });

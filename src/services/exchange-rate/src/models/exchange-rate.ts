@@ -7,7 +7,7 @@ const exchangeRateSchema = new mongoose.Schema({
    * This format is used by the API we retrieve the exchange rate data from.
    */
   date: String,
-  currencyMatrix: {
+  exchangeRateMap: {
     type: Map,
     of: {
       type: Map,
