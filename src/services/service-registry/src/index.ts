@@ -9,6 +9,7 @@ import { ServiceConfig as Cfg } from "./config";
 import { Logger } from "./logger";
 import mongoose from "mongoose";
 import { configure as configureAuthMiddleware } from "expense-app-auth-middleware";
+import cors from "cors";
 
 if (existsSync(".env")) {
   dotenv.config();
@@ -18,6 +19,11 @@ const app = express();
 app.use(helmet());
 app.use(morgan("tiny"));
 app.use(express.json());
+app.use(
+  cors({
+    origin: true,
+  }),
+);
 app.use(router);
 
 const server = app.listen(9909, "localhost", async (err) => {

@@ -6,7 +6,10 @@ const userSchema = new mongoose.Schema({
   email: String,
   registeredAt: Number,
   password: String,
-  defaultCurrency: Currency,
+  defaultCurrency: {
+    type: String,
+    enum: Object.values(Currency),
+  },
   paymentMethods: [{ value: String, color: String }],
   paidTos: [{ value: String, color: String }],
   categories: [{ value: String, color: String }],

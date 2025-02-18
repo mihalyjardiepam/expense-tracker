@@ -1,0 +1,16 @@
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  padding: 0.4em;
+
+  .button-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.required {
+  color: var(--ui-warn);
+}

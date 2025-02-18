@@ -14,7 +14,7 @@ export default [
         index("routes/dashboard/expense-table.tsx"),
       ]),
     ]),
-    route("login", "routes/login/login.tsx"),
-    route("signup", "routes/signup/signup.tsx"),
   ]),
+  route("login", "routes/login/login.tsx"),
+  route("signup", "routes/signup/signup.tsx"),
 ] satisfies RouteConfig;

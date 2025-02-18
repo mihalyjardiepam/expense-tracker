@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { signup } from "./auth/controller";
 
 export const router = Router();
 
@@ -7,3 +8,5 @@ router.get("/", (req, res) => {
     status: "OK",
   });
 });
+
+router.post("/signup", signup);

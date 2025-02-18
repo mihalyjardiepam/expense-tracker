@@ -1,9 +1,15 @@
 @use "forms";
+@use "button";
 
 :root {
   --ui-primary: #71c285;
   --ui-secondary: #f0c419;
   --ui-accent: #556080;
+  --ui-border-radius: 8px;
+  --ui-warn: #ff6060;
+
+  --ui-disabled-fg: #d4d4d4;
+  --ui-disabled-bg: #616161;
 }
 
 * {
@@ -24,4 +30,8 @@ body {
 
 .flex-spacer {
   flex: 1;
+}
+
+a {
+  color: var(--ui-primary);
 }
