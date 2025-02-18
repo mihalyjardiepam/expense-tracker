@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { Signup } from "../models/signup";
-import { User } from "../models/user";
+import { User, UserDto, ValueWithColor } from "../models/user";
 import crypto, { BinaryLike, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { Currency } from "../models/currency";
@@ -113,6 +113,30 @@ export async function login(req: Request, res: Response) {
   });
 
   res.status(204).send();
+}
+
+export async function getUser(req: Request, res: Response) {
+  const user = await User.findOne({
+    _id: req.user["id"],
+  });
+
+  if (user == null) {
+    res.status(401).send("Unauthorized");
+    return;
+  }
+
+  const response: UserDto = {
+    _id: req.user["id"],
+    categories: user.categories as ValueWithColor[],
+    defaultCurrency: user.defaultCurrency,
+    email: user.email,
+    name: user.name,
+    paidTos: user.paidTos as ValueWithColor[],
+    paymentMethods: user.paymentMethods as ValueWithColor[],
+    registeredAt: user.registeredAt,
+  };
+
+  res.status(200).json(response);
 }
 
 export async function comparePassword(password: string, passwordHash: string) {

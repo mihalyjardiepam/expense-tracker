@@ -15,6 +15,10 @@ if (existsSync(".env")) {
   dotenv.config();
 }
 
+// configureAuthMiddleware({
+//   secret: process.env.SECRET_KEY,
+// });
+
 const app = express();
 app.use(helmet());
 app.use(morgan("tiny"));
@@ -30,10 +34,6 @@ app.use(router);
 const server = app.listen(9909, "localhost", async (err) => {
   const fullName = `${Cfg.serviceName}:${Cfg.serviceVersion}`;
   const logger = Logger(fullName);
-
-  configureAuthMiddleware({
-    secret: process.env.SECRET_KEY,
-  });
 
   if (err) {
     logger.error(`failed to start: ${err}`);

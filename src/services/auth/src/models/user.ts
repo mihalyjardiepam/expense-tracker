@@ -23,9 +23,10 @@ const userSchema = new mongoose.Schema({
 export const User = mongoose.model("User", userSchema);
 
 export interface UserDto {
+  _id: string;
   name: string;
   email: string;
-  registeredAt: string;
+  registeredAt: number;
   defaultCurrency: Currency;
   paymentMethods: ValueWithColor[];
   paidTos: ValueWithColor[];

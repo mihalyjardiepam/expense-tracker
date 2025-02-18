@@ -12,6 +12,7 @@ import { configure as configureAuthMiddleware } from "expense-app-auth-middlewar
 import { registerHeartbeat } from "./register-heartbeat";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import passport from "passport";
 
 if (existsSync(".env")) {
   dotenv.config();
@@ -25,6 +26,10 @@ app.use(helmet());
 app.use(morgan("tiny"));
 app.use(express.json());
 app.use(cookieParser());
+configureAuthMiddleware(passport, {
+  secret: process.env.SECRET_KEY,
+});
+app.use(passport.initialize());
 app.use(
   cors({
     origin: true,
@@ -36,10 +41,6 @@ app.use(router);
 const server = app.listen(0, "localhost", async (err) => {
   const fullName = `${Cfg.serviceName}:${Cfg.serviceVersion}`;
   const logger = Logger(fullName);
-
-  configureAuthMiddleware({
-    secret: process.env.SECRET_KEY,
-  });
 
   if (err) {
     logger.error(`failed to start: ${err}`);

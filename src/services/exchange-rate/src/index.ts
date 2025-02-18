@@ -1,3 +1,4 @@
+// import  passport from 'passport';
 import "./instrumentation";
 import { existsSync } from "fs";
 import express from "express";
@@ -17,6 +18,10 @@ if (existsSync(".env")) {
   dotenv.config();
 }
 
+// configureAuthMiddleware(passport, {
+//   secret: process.env.SECRET_KEY,
+// });
+
 const SERVICE_REGISTRY_URI =
   process.env.SERVICE_REGISTRY_URI || "http://localhost:9909/heartbeat";
 
@@ -35,10 +40,6 @@ app.use(router);
 const server = app.listen(0, "localhost", async (err) => {
   const fullName = `${Cfg.serviceName}:${Cfg.serviceVersion}`;
   const logger = Logger(fullName);
-
-  configureAuthMiddleware({
-    secret: process.env.SECRET_KEY,
-  });
 
   if (err) {
     logger.error(`failed to start: ${err}`);

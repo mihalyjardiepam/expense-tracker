@@ -19,15 +19,14 @@ function cookieExtractor(req: Request) {
   return token;
 }
 
-export function configure(cfg: AuthEnv) {
+export function configure(passport: passport.PassportStatic, cfg: AuthEnv) {
   const passportOptions: StrategyOptionsWithoutRequest = {
     jwtFromRequest: cookieExtractor,
     secretOrKey: cfg.secret,
-    issuer: "expense-tracker",
-    audience: "expense.localhost",
   };
 
   passport.use(
+    "jwt",
     new JwtStrategy(passportOptions, (payload, done) => {
       done(null, { id: payload.sub });
     }),
