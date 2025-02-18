@@ -1,0 +1,52 @@
+.app-btn {
+  font-size: 1.1rem;
+  padding: 0.6em 0.8em;
+  border: 2px solid;
+  border-radius: var(--ui-border-radius);
+  cursor: pointer;
+  transition: opacity 0.1s ease-in-out;
+
+  $button-colors: (
+    "primary": var(--ui-primary),
+    "secondary": var(--ui-secondary),
+    "accent": var(--ui-accent),
+  );
+
+  @each $colorKey, $color in $button-colors {
+    &.color-#{$colorKey} {
+      &.variant-fill {
+        background-color: $color;
+        color: white;
+        border-color: transparent;
+      }
+
+      &.variant-outline,
+      &:not(.variant-fill) {
+        border-color: $color;
+        color: $color;
+        background-color: transparent;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px dashed white;
+  }
+
+  &.variant-fill:disabled {
+    background-color: var(--ui-disabled-bg) !important;
+    color: var(--ui-disabled-fg);
+    cursor: default;
+  }
+
+  &.variant-outline:disabled,
+  &:not(.variant-fill):disabled {
+    border-color: var(--ui-disabled-bg) !important;
+    color: var(--ui-disabled-fg);
+    cursor: default;
+  }
+}

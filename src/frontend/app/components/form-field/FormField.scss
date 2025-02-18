@@ -1,0 +1,41 @@
+.field-wrapper {
+  font-size: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+  padding: 0.4em;
+
+  .form-field-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+
+    input,
+    select {
+      padding: 0.4em;
+      font-size: 1em;
+      outline: none;
+      border: 2px solid var(--ui-accent);
+      border-radius: var(--ui-border-radius);
+
+      &:focus {
+        outline: 2px solid var(--ui-primary);
+      }
+
+      &:user-invalid {
+        outline: 2px solid var(--ui-warn);
+      }
+    }
+  }
+
+  .hint {
+    font-size: 0.8em;
+    opacity: 0.8;
+    font-style: italic;
+  }
+
+  .error {
+    font-weight: bold;
+    color: var(--ui-warn);
+  }
+}
