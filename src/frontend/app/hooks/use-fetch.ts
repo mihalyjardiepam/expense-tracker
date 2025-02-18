@@ -17,7 +17,10 @@ export function useFetch(service: string) {
     }
 
     if (doResolve) {
-      SERVICE_REGISTRY[service] = await resolveService(service);
+      SERVICE_REGISTRY[service] = (await resolveService(service)).replace(
+        "127.0.0.1",
+        "localhost",
+      );
     }
 
     return await fetch(`${SERVICE_REGISTRY[service]}${input}`, init);

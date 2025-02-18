@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 import { Currency } from "./currency";
 
+export interface ValueWithColor {
+  value: string;
+  color: string;
+}
+
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
@@ -16,3 +21,13 @@ const userSchema = new mongoose.Schema({
 });
 
 export const User = mongoose.model("User", userSchema);
+
+export interface UserDto {
+  name: string;
+  email: string;
+  registeredAt: string;
+  defaultCurrency: Currency;
+  paymentMethods: ValueWithColor[];
+  paidTos: ValueWithColor[];
+  categories: ValueWithColor[];
+}

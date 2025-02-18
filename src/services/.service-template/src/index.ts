@@ -11,6 +11,7 @@ import mongoose from "mongoose";
 import { configure as configureAuthMiddleware } from "expense-app-auth-middleware";
 import { registerHeartbeat } from "./register-heartbeat";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 if (existsSync(".env")) {
   dotenv.config();
@@ -25,8 +26,10 @@ app.use(morgan("tiny"));
 app.use(
   cors({
     origin: true,
+    credentials: true,
   }),
 );
+app.use(cookieParser());
 app.use(router);
 
 const server = app.listen(0, "localhost", async (err) => {

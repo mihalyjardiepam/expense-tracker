@@ -16,7 +16,7 @@ export interface HeartbeatRequest {
   check: string;
 }
 
-const SERVICE_EXPIRY_MS = 30_000;
+const SERVICE_EXPIRY_MS = 10_000;
 
 export class ServiceContainer {
   #services = new Map<string, ServiceEntry[]>();

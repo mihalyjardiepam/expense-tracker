@@ -1,5 +1,4 @@
 import { Outlet } from "react-router";
-import Navbar from "~/components/Navbar";
 
 function Dashboard() {
   return (
