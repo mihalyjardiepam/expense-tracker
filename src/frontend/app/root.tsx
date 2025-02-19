@@ -5,10 +5,14 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  type LoaderFunctionArgs,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.scss";
+import { UserContext } from "./context/user-context";
+import { useFetch } from "./hooks/use-fetch";
+import type { User } from "./models/user";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -21,7 +25,32 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Roboto&display=swap",
   },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined",
+  },
 ];
+
+interface LoaderData {
+  user: User | null;
+}
+
+export async function loader(context: LoaderFunctionArgs) {
+  const [authFetch] = useFetch("auth");
+
+  const response = await authFetch("/get-user", {
+    credentials: "include",
+    headers: {
+      Cookie: context.request.headers.get("cookie") || "",
+    },
+  });
+
+  if (response.ok) {
+    return { user: await response.json() };
+  }
+
+  return { user: null };
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,8 +71,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function App() {
-  return <Outlet />;
+export default function App({ loaderData }: { loaderData: LoaderData }) {
+  return (
+    <UserContext.Provider value={loaderData.user}>
+      <Outlet />
+    </UserContext.Provider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

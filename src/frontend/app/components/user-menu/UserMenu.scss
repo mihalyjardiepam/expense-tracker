@@ -1,0 +1,68 @@
+.user-menu-button,
+.menu-button {
+  height: 48px;
+  min-width: 48px;
+  font-size: 1.2rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  gap: 4px;
+  color: var(--ui-primary);
+  border: none;
+  border-radius: var(--ui-border-radius);
+  background-color: transparent;
+  cursor: pointer;
+  width: 100%;
+
+  &:focus-visible {
+    outline: 2px dashed white;
+  }
+
+  .icon {
+    $size: 28px;
+    font-size: $size;
+    height: $size;
+  }
+
+  &:hover {
+    background-color: var(--ui-active-bg);
+  }
+}
+
+.menu-wrapper {
+  position: relative;
+
+  .popup-content {
+    $shadow: rgba(255, 255, 255, 0.2);
+    display: none;
+    position: absolute;
+    background-color: var(--ui-dark);
+    padding: 8px;
+    top: calc(100% + 0.2rem);
+    right: 0px;
+    border-radius: var(--ui-border-radius);
+    box-shadow: 2px 2px 6px 0px $shadow;
+    border: 1px solid $shadow;
+
+    &.expanded {
+      display: block;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: column;
+      list-style-type: none;
+      align-items: stretch;
+      padding: 0;
+      margin: 0;
+      gap: 8px;
+    }
+  }
+}
+
+.user-menu-button {
+  &.expanded {
+    background-color: var(--ui-active-bg);
+  }
+}

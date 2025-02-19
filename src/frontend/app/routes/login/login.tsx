@@ -1,5 +1,7 @@
 import React, {
   useCallback,
+  useContext,
+  useEffect,
   useState,
   useTransition,
   type FormEvent,
@@ -7,10 +9,18 @@ import React, {
 import { NavLink, useNavigate } from "react-router";
 import FormField from "~/components/form-field/FormField";
 import RequiredFieldExplanation from "~/components/RequiredFieldExplanation";
+import { UserContext } from "~/context/user-context";
 import { useFetch } from "~/hooks/use-fetch";
 
 const Login = () => {
   const [isPending, startTransition] = useTransition();
+  const user = useContext(UserContext);
+
+  useEffect(() => {
+    if (user != null) {
+      navigate("/");
+    }
+  }, [user]);
 
   const handleSubmit = useCallback((e: FormEvent) => {
     e.preventDefault();
