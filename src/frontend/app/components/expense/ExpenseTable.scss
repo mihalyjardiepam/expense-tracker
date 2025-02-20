@@ -1,0 +1,28 @@
+.table-wrapper {
+  max-width: 100vw;
+  overflow-x: auto;
+  padding: 8px 4px;
+}
+
+.expense-table {
+  border-collapse: collapse;
+
+  thead {
+    background-color: var(--ui-dark);
+
+    th {
+      padding: 6px;
+    }
+  }
+
+  tbody {
+    td {
+      padding: 4px 4px;
+    }
+  }
+
+  .nobreak {
+    word-wrap: none;
+    white-space: nowrap;
+  }
+}

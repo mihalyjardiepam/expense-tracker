@@ -1,0 +1,16 @@
+.dialog {
+  background-color: var(--ui-dark);
+  border: 2px solid var(--ui-accent);
+  margin: 1rem auto;
+  max-width: 90vw;
+  min-width: 60vw;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: var(--ui-border-radius);
+  box-shadow: 2px 2px 8px 2px var(--ui-shadow);
+
+  &::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+}

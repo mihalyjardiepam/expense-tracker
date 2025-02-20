@@ -9,6 +9,7 @@
   --ui-warn: #ff6060;
   --ui-dark: #111111;
   --ui-active-bg: #333333;
+  --ui-shadow: #ffffff33;
 
   --ui-disabled-fg: #d4d4d4;
   --ui-disabled-bg: #616161;
@@ -36,4 +37,8 @@ body {
 
 a {
   color: var(--ui-primary);
+}
+
+.uppercase {
+  text-transform: uppercase;
 }
