@@ -14,10 +14,15 @@ import { useFetch } from "~/hooks/use-fetch";
 import { roundTo } from "~/lib/round-to";
 import MatIcon from "../mat-icon/MatIcon";
 import { useCachedSetting } from "~/hooks/use-cached-setting";
+import type { ExpenseRecord } from "~/models/expense";
 
 const LOCALSTORAGE_SYNC_SETTING_DEFAULT = "__exp_syncSettingDefaultKey";
 
-const ExpenseForm = () => {
+export interface ExpenseFormProps {
+  onClose: () => any;
+}
+
+const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
   const [isPending, startTransition] = useTransition();
   const [erFetch] = useFetch("exchange-rate");
   const [expenseFetch] = useFetch("expense");
@@ -247,7 +252,9 @@ const ExpenseForm = () => {
         <button className="app-btn color-primary variant-fill">
           Save Expense
         </button>
-        <button className="app-btn color-secondary">Cancel</button>
+        <button className="app-btn color-secondary" onClick={onClose}>
+          Cancel
+        </button>
       </div>
     </form>
   );

@@ -1,7 +1,7 @@
 {
-  "name": "service-template",
+  "name": "expense",
   "version": "0.0.1",
-  "description": "Microservice template for the Expense Tracker application",
+  "description": "Expense Record Microservice for the Expense Tracker application",
   "main": "dist/index.js",
   "scripts": {
     "test": "jest --watch",
@@ -38,6 +38,7 @@
     "@types/passport": "^1.0.17",
     "concurrently": "^9.1.2",
     "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
     "nodemon": "^3.1.9",
     "ts-jest": "^29.2.5",
     "typescript": "^5.7.3"

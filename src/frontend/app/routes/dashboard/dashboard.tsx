@@ -26,7 +26,7 @@ function Dashboard() {
       </div>
       <Outlet />
       <Dialog isOpen={modalOpen} setIsOpen={expenseDialogRequestClose}>
-        <ExpenseForm></ExpenseForm>
+        <ExpenseForm onClose={expenseDialogRequestClose}></ExpenseForm>
       </Dialog>
     </>
   );
