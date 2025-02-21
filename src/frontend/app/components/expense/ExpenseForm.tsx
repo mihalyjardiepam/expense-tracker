@@ -4,6 +4,7 @@ import React, {
   useState,
   useTransition,
   type ChangeEvent,
+  type FormEvent,
   type MouseEvent,
 } from "react";
 import FormField from "../form-field/FormField";
@@ -14,7 +15,8 @@ import { useFetch } from "~/hooks/use-fetch";
 import { roundTo } from "~/lib/round-to";
 import MatIcon from "../mat-icon/MatIcon";
 import { useCachedSetting } from "~/hooks/use-cached-setting";
-import type { ExpenseRecord } from "~/models/expense";
+import type { CreateExpense, ExpenseRecord } from "~/models/expense";
+import { isValidDate } from "~/lib/is-valid-date";
 
 const LOCALSTORAGE_SYNC_SETTING_DEFAULT = "__exp_syncSettingDefaultKey";
 
@@ -42,6 +44,7 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
     true,
   );
   const [exchangedAmount, setExchangedAmount] = useState(0);
+  const [formError, setFormError] = useState("");
 
   const currencyChanged = useCallback(
     (evt: ChangeEvent<HTMLSelectElement>) => {
@@ -128,14 +131,115 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
     [syncPaymentAmounts],
   );
 
-  const submitExpense = useCallback(() => {}, [expenseFetch]);
+  const submitExpense = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setFormError("");
+
+      startTransition(async () => {
+        const formData = new FormData(e.target as HTMLFormElement);
+
+        const expense: Partial<CreateExpense> = {
+          paymentMethod: formData.get("paymentMethod")?.toString() ?? "",
+          paidTo: formData.get("paidTo")?.toString() ?? "",
+          category: formData.get("category")?.toString() ?? "",
+          description: formData.get("description")?.toString() ?? "",
+        };
+
+        const formDate = formData.get("date")?.toString();
+        if (!formDate) {
+          return setFormError("Date is required.");
+        }
+
+        const date = new Date(formDate);
+        console.log({ formDate, date });
+        if (!isValidDate(date)) {
+          return setFormError("Invalid date.");
+        }
+        expense.date = date.getTime();
+
+        const paymentAmount = Number(formData.get("paymentAmount")?.toString());
+        if (isNaN(paymentAmount)) {
+          return setFormError("Invalid payment amount: Expected a number.");
+        }
+
+        const currency = formData.get("currency")?.toString() as Currency;
+        if (!currency) {
+          return setFormError("Payment Details: Currency is required.");
+        }
+
+        if (currency === user!.defaultCurrency) {
+          expense.payment = {
+            amount: paymentAmount,
+            convertedAmount: paymentAmount,
+            convertedTo: currency,
+            currency: currency,
+            exchangeRate: 1,
+          };
+        } else {
+          const exchangeRate = Number(formData.get("exchangeRate")?.toString());
+          if (isNaN(exchangeRate)) {
+            return setFormError("Invalid exchange rate: Expected a number.");
+          }
+
+          const exchangedAmount = Number(
+            formData.get("exchangedAmount")?.toString(),
+          );
+          if (isNaN(exchangedAmount)) {
+            return setFormError("Invalid converted amount: Expected a number.");
+          }
+
+          expense.payment = {
+            amount: paymentAmount,
+            currency: currency,
+            convertedTo: user!.defaultCurrency,
+            convertedAmount: exchangedAmount,
+            exchangeRate: exchangeRate,
+          };
+        }
+
+        try {
+          const response = await expenseFetch(`/expenses`, {
+            method: "POST",
+            body: JSON.stringify(expense),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          if (response.ok) {
+            console.log("successfully created expense.");
+            console.log(await response.json());
+
+            onClose();
+          } else {
+            try {
+              const errorBody = await response.json();
+              setFormError(`Failed to create expense: ${errorBody.error}`);
+            } catch (error) {
+              setFormError(
+                `Failed to create expense: Something went wrong. (${await response.text()})`,
+              );
+            }
+          }
+        } catch (error) {
+          console.error(error);
+          setFormError(`Failed to create expense: ${JSON.stringify(error)}`);
+        }
+      });
+    },
+    [expenseFetch],
+  );
 
   return (
     <form className="expense-form" onSubmit={submitExpense}>
       <h2>Add Expense</h2>
+
       <FormField label="Date" hint="MM/DD/YYYY">
         <input disabled={isPending} type="date" name="date" required />
       </FormField>
+
       <FormField label="Payment Method" hint="card, cash, etc.">
         <input
           disabled={isPending}
@@ -151,6 +255,7 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           ))}
         </datalist>
       </FormField>
+
       <FormField label="Payment To" hint="grocery store">
         <input disabled={isPending} type="text" name="paidTo" list="paidTos" />
         <datalist id="paidTos">
@@ -161,9 +266,11 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           ))}
         </datalist>
       </FormField>
+
       <FormField label="Notes">
-        <input disabled={isPending} type="text" name="notes" />
+        <input disabled={isPending} type="text" name="description" />
       </FormField>
+
       <FormField label="Category" hint="groceries, bills, etc.">
         <input
           disabled={isPending}
@@ -179,6 +286,7 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           ))}
         </datalist>
       </FormField>
+
       <FormField label="Payment Currency">
         <select
           disabled={isPending}
@@ -193,6 +301,7 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           ))}
         </select>
       </FormField>
+
       <FormField
         label={`Payment Amount ${currency.toUpperCase()}`}
         hint="35.41"
@@ -207,6 +316,7 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           onChange={paymentAmountChanged}
         />
       </FormField>
+
       {currency != user?.defaultCurrency && (
         <>
           <span>Converting to: {user!.defaultCurrency.toUpperCase()}</span>
@@ -222,6 +332,7 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
             >
               <MatIcon>{syncPaymentAmounts ? "sync_lock" : "sync"}</MatIcon>
             </button>
+
             <FormField label="Exchange Rate">
               <input
                 disabled={isPending}
@@ -234,6 +345,7 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
               />
             </FormField>
           </div>
+
           <FormField
             label={`Exchanged Amount ${user!.defaultCurrency.toUpperCase()}`}
           >
@@ -248,6 +360,9 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           </FormField>
         </>
       )}
+      <div className="alert">
+        {formError && <span className="alert alert-error">{formError}</span>}
+      </div>
       <div className="button-area">
         <button className="app-btn color-primary variant-fill">
           Save Expense

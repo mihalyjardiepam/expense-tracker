@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { HydratedDocument, Schema } from "mongoose";
 
 export enum Currency {
   Eur = "eur",
@@ -25,19 +25,24 @@ export interface IExpenseRecord {
   payment: IPayment;
 }
 
-const payment = new mongoose.Schema<IPayment>({
-  currency: {
-    type: String,
-    enum: Object.values(Currency),
+const payment = new mongoose.Schema<IPayment>(
+  {
+    currency: {
+      type: String,
+      enum: Object.values(Currency),
+    },
+    amount: Number,
+    convertedTo: {
+      type: String,
+      enum: Object.values(Currency),
+    },
+    convertedAmount: Number,
+    exchangeRate: Number,
   },
-  amount: Number,
-  convertedTo: {
-    type: String,
-    enum: Object.values(Currency),
+  {
+    _id: false,
   },
-  convertedAmount: Number,
-  exchangeRate: Number,
-});
+);
 
 const expenseSchema = new mongoose.Schema<IExpenseRecord>({
   userId: Schema.Types.ObjectId,
@@ -67,6 +72,20 @@ export interface ExpenseDto {
   description: string;
   category: string;
   payment: PaymentDto;
+}
+
+export function expenseToDto(
+  expense: HydratedDocument<IExpenseRecord>,
+): ExpenseDto {
+  return {
+    _id: expense._id.toHexString(),
+    category: expense.category,
+    date: expense.date,
+    description: expense.description,
+    paidTo: expense.paidTo,
+    payment: expense.payment,
+    paymentMethod: expense.paymentMethod,
+  };
 }
 
 export type CreateExpenseDto = Pick<

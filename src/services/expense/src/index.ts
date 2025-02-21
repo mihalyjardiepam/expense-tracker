@@ -48,7 +48,9 @@ const server = app.listen(0, "localhost", async (err) => {
   }
 
   try {
-    await mongoose.connect(process.env.MONGODB_URL);
+    await mongoose.connect(process.env.MONGODB_URL, {
+      dbName: "expense-tracker",
+    });
     logger.log("MongoDB connected");
   } catch (error) {
     logger.error(`failed to connect to MongoDB: ${error}`);

@@ -29,12 +29,16 @@ async function heartbeat(config: HeartbeatConfig) {
   const response = await fetch(config.serviceRegistryUri, {
     method: "POST",
     body: JSON.stringify(heartbeatRequest),
+    headers: {
+      "Content-Type": "application/json",
+    },
   });
 
   if (response.ok) {
     logger.log("Successfully sent heartbeat request.");
   } else {
     logger.error("Failed to send heartbeat request.");
+    logger.error(await response.text());
   }
 }
 

@@ -13,25 +13,15 @@ export interface ExpenseRecord {
   paidTo: string;
   description: string;
   category: string;
-  paymentDetails: Payment;
+  payment: Payment;
 }
 
 export type CreateExpense = Pick<
   ExpenseRecord,
-  | "date"
-  | "paymentMethod"
-  | "paidTo"
-  | "description"
-  | "category"
-  | "paymentDetails"
+  "date" | "paymentMethod" | "paidTo" | "description" | "category" | "payment"
 >;
 
 export type UpdateExpense = Pick<
   ExpenseRecord,
-  | "date"
-  | "paymentMethod"
-  | "paidTo"
-  | "description"
-  | "category"
-  | "paymentDetails"
+  "date" | "paymentMethod" | "paidTo" | "description" | "category" | "payment"
 >;
