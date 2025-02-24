@@ -11,7 +11,7 @@ export default [
     index("routes/index.tsx"),
     ...prefix("dashboard", [
       layout("routes/dashboard/dashboard.tsx", [
-        index("routes/dashboard/expense-table.tsx"),
+        index("routes/dashboard/expense-page.tsx"),
       ]),
     ]),
   ]),

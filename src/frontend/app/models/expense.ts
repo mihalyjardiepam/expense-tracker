@@ -6,7 +6,7 @@ import type { UnixTimestampMs } from "./unix-timestamp-ms";
  * A record of an expense.
  */
 export interface ExpenseRecord {
-  id: IdType;
+  _id: IdType;
   userId: IdType;
   date: UnixTimestampMs;
   paymentMethod: string;
