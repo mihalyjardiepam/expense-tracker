@@ -1,0 +1,12 @@
+.confirm-dialog-wrapper {
+  padding: 0.5em;
+
+  .buttons {
+    padding-top: 2em;
+    display: flex;
+    flex-direction: row;
+    gap: 0.4em;
+    align-items: center;
+    justify-content: center;
+  }
+}

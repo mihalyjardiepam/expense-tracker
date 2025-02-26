@@ -15,38 +15,70 @@ import { useFetch } from "~/hooks/use-fetch";
 import { roundTo } from "~/lib/round-to";
 import MatIcon from "../mat-icon/MatIcon";
 import { useCachedSetting } from "~/hooks/use-cached-setting";
-import type { CreateExpense, ExpenseRecord } from "~/models/expense";
+import type {
+  CreateExpense,
+  ExpenseRecord,
+  UpdateExpense,
+} from "~/models/expense";
 import { isValidDate } from "~/lib/is-valid-date";
 import { useAppDispatch } from "~/hooks/redux";
-import { expenseAdded } from "~/store/expense";
+import {
+  createExpense,
+  expenseAdded,
+  expenseUpdated,
+  updateExpense,
+} from "~/store/expense";
+import { timestampToDate } from "~/lib/timestamp-to-date";
 
 const LOCALSTORAGE_SYNC_SETTING_DEFAULT = "__exp_syncSettingDefaultKey";
 
 export interface ExpenseFormProps {
   onClose: () => any;
+  expense?: ExpenseRecord;
 }
 
-const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
+const ExpenseForm = ({ onClose, expense }: ExpenseFormProps) => {
   const [isPending, startTransition] = useTransition();
   const [erFetch] = useFetch("exchange-rate");
   const [expenseFetch] = useFetch("expense");
   const dispatch = useAppDispatch();
 
   const user = useContext(UserContext);
-  const [currency, setCurrency] = useState(() => user!.defaultCurrency);
+
+  // bound controls
+  const [currency, setCurrency] = useState(
+    expense ? expense.payment.currency : user!.defaultCurrency,
+  );
+  const [date, setDate] = useState(
+    timestampToDate(expense ? expense.date : new Date().getTime()),
+  );
+  const [paymentMethod, setPaymentMethod] = useState(
+    expense ? expense.paymentMethod : "",
+  );
+  const [paidTo, setPaidTo] = useState(expense ? expense.paidTo : "");
+  const [category, setCategory] = useState(expense ? expense.category : "");
+  const [description, setDescription] = useState(
+    expense ? expense.description : "",
+  );
 
   // This variable is needed to determine which input needs updating in case
   // the exchange rate is updated.
   // For example, if the paymentAmount is entered, then the exchangeRate
   // is updated, the exchangedAmount needs to be updated.
   const [lastChangedInput, setLastChangedInput] = useState("paymentAmount");
-  const [paymentAmount, setPaymentAmount] = useState(0);
-  const [exchangeRate, setExchangeRate] = useState(0);
+  const [paymentAmount, setPaymentAmount] = useState(
+    expense ? expense.payment.amount : 0,
+  );
+  const [exchangeRate, setExchangeRate] = useState(
+    expense ? expense.payment.exchangeRate : 0,
+  );
   const [syncPaymentAmounts, setSyncPaymentAmounts] = useCachedSetting(
     LOCALSTORAGE_SYNC_SETTING_DEFAULT,
     true,
   );
-  const [exchangedAmount, setExchangedAmount] = useState(0);
+  const [exchangedAmount, setExchangedAmount] = useState(
+    expense ? expense.payment.convertedAmount : 0,
+  );
   const [formError, setFormError] = useState("");
 
   const currencyChanged = useCallback(
@@ -140,38 +172,36 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
       setFormError("");
 
       startTransition(async () => {
-        const formData = new FormData(e.target as HTMLFormElement);
+        const data: Partial<ExpenseRecord> = expense
+          ? ({
+              paymentMethod,
+              paidTo,
+              category,
+              description,
+            } as Partial<UpdateExpense>)
+          : ({
+              paymentMethod,
+              paidTo,
+              category,
+              description,
+            } as Partial<CreateExpense>);
 
-        const expense: Partial<CreateExpense> = {
-          paymentMethod: formData.get("paymentMethod")?.toString() ?? "",
-          paidTo: formData.get("paidTo")?.toString() ?? "",
-          category: formData.get("category")?.toString() ?? "",
-          description: formData.get("description")?.toString() ?? "",
-        };
-
-        const formDate = formData.get("date")?.toString();
-        if (!formDate) {
+        if (!date) {
           return setFormError("Date is required.");
         }
 
-        const date = new Date(formDate);
-        if (!isValidDate(date)) {
+        const convertedDate = new Date(date);
+        if (!isValidDate(convertedDate)) {
           return setFormError("Invalid date.");
         }
-        expense.date = date.getTime();
+        data.date = convertedDate.getTime();
 
-        const paymentAmount = Number(formData.get("paymentAmount")?.toString());
-        if (isNaN(paymentAmount)) {
-          return setFormError("Invalid payment amount: Expected a number.");
-        }
-
-        const currency = formData.get("currency")?.toString() as Currency;
         if (!currency) {
           return setFormError("Payment Details: Currency is required.");
         }
 
         if (currency === user!.defaultCurrency) {
-          expense.payment = {
+          data.payment = {
             amount: paymentAmount,
             convertedAmount: paymentAmount,
             convertedTo: currency,
@@ -179,19 +209,15 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
             exchangeRate: 1,
           };
         } else {
-          const exchangeRate = Number(formData.get("exchangeRate")?.toString());
           if (isNaN(exchangeRate)) {
             return setFormError("Invalid exchange rate: Expected a number.");
           }
 
-          const exchangedAmount = Number(
-            formData.get("exchangedAmount")?.toString(),
-          );
           if (isNaN(exchangedAmount)) {
             return setFormError("Invalid converted amount: Expected a number.");
           }
 
-          expense.payment = {
+          data.payment = {
             amount: paymentAmount,
             currency: currency,
             convertedTo: user!.defaultCurrency,
@@ -201,34 +227,21 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
         }
 
         try {
-          const response = await expenseFetch(`/expenses`, {
-            method: "POST",
-            body: JSON.stringify(expense),
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          });
-
-          if (response.ok) {
-            console.log("successfully created expense.");
-            const expense = await response.json();
-            dispatch(expenseAdded(expense));
-
-            onClose();
+          if (expense == undefined) {
+            dispatch(createExpense(data as CreateExpense) as any);
           } else {
-            try {
-              const errorBody = await response.json();
-              setFormError(`Failed to create expense: ${errorBody.error}`);
-            } catch (error) {
-              setFormError(
-                `Failed to create expense: Something went wrong. (${await response.text()})`,
-              );
-            }
+            dispatch(
+              updateExpense({
+                id: expense._id,
+                data: data as UpdateExpense,
+              }) as any,
+            );
           }
+
+          onClose();
         } catch (error) {
           console.error(error);
-          setFormError(`Failed to create expense: ${JSON.stringify(error)}`);
+          setFormError(`Failed to save expense: ${JSON.stringify(error)}`);
         }
       });
     },
@@ -240,7 +253,14 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
       <h2>Add Expense</h2>
 
       <FormField label="Date" hint="MM/DD/YYYY">
-        <input disabled={isPending} type="date" name="date" required />
+        <input
+          disabled={isPending}
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          type="date"
+          name="date"
+          required
+        />
       </FormField>
 
       <FormField label="Payment Method" hint="card, cash, etc.">
@@ -249,6 +269,8 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           type="text"
           name="paymentMethod"
           list="paymentMethods"
+          value={paymentMethod}
+          onChange={(e) => setPaymentMethod(e.target.value)}
         />
         <datalist id="paymentMethods">
           {user!.paymentMethods.map((paymentMethod) => (
@@ -260,7 +282,14 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
       </FormField>
 
       <FormField label="Payment To" hint="grocery store">
-        <input disabled={isPending} type="text" name="paidTo" list="paidTos" />
+        <input
+          disabled={isPending}
+          type="text"
+          name="paidTo"
+          list="paidTos"
+          value={paidTo}
+          onChange={(e) => setPaidTo(e.target.value)}
+        />
         <datalist id="paidTos">
           {user!.paidTos.map((paidTo) => (
             <option value={paidTo.value} key={paidTo.value}>
@@ -271,7 +300,13 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
       </FormField>
 
       <FormField label="Notes">
-        <input disabled={isPending} type="text" name="description" />
+        <input
+          disabled={isPending}
+          type="text"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          name="description"
+        />
       </FormField>
 
       <FormField label="Category" hint="groceries, bills, etc.">
@@ -280,6 +315,8 @@ const ExpenseForm = ({ onClose }: ExpenseFormProps) => {
           type="text"
           name="category"
           list="categories"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
         />
         <datalist id="categories">
           {user!.categories.map((category) => (

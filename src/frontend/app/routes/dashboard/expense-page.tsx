@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import Dialog from "~/components/dialog/Dialog";
 import ExpenseForm from "~/components/expense/ExpenseForm";
 import ExpenseTable from "~/components/expense/ExpenseTable";
+import "./expense-page.scss";
 
 function ExpenseTablePage() {
   const [modalOpen, setModalOpen] = useState(false);
