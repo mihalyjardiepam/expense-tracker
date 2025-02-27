@@ -26,19 +26,23 @@ async function heartbeat(config: HeartbeatConfig) {
 
   logger.log("Sending heartbeat request.");
 
-  const response = await fetch(config.serviceRegistryUri, {
-    method: "POST",
-    body: JSON.stringify(heartbeatRequest),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  try {
+    const response = await fetch(config.serviceRegistryUri, {
+      method: "POST",
+      body: JSON.stringify(heartbeatRequest),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  if (response.ok) {
-    logger.log("Successfully sent heartbeat request.");
-  } else {
-    logger.error("Failed to send heartbeat request.");
-    logger.error(await response.text());
+    if (response.ok) {
+      logger.log("Successfully sent heartbeat request.");
+    } else {
+      logger.error("Failed to send heartbeat request.");
+      logger.error(await response.text());
+    }
+  } catch (error) {
+    console.error("Failed to register service: ", error);
   }
 }
 

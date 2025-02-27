@@ -1,6 +1,7 @@
+import { useAuthentication } from "~/hooks/use-authentication";
 import { configureStore } from "@reduxjs/toolkit";
 import { expenseReducer } from "./expense";
-import { useFetch } from "~/hooks/use-fetch";
+import { useServiceDiscovery } from "~/hooks/use-service-discovery";
 
 export const store = configureStore({
   reducer: {
@@ -10,7 +11,7 @@ export const store = configureStore({
     getDefaultMiddleware({
       thunk: {
         extraArgument: {
-          expenseFetch: useFetch("expense")[0],
+          expenseFetch: useAuthentication(useServiceDiscovery("expense")),
         },
       },
     }),

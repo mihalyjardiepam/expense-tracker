@@ -1,15 +1,26 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { appCreateAsyncThunk } from "~/hooks/redux";
+import { getRangeFromMonth } from "~/models/date-range";
 import type {
   CreateExpense,
   ExpenseRecord,
   UpdateExpense,
 } from "~/models/expense";
+import type { UnixTimestampMs } from "~/models/unix-timestamp-ms";
 
-export const fetchExpenses = appCreateAsyncThunk(
+export interface DisplayParams {
+  displayMonth: UnixTimestampMs;
+}
+
+export const fetchExpenses = appCreateAsyncThunk<ExpenseRecord[], void>(
   "expenses/fetchExpenses",
   async (_, thunkApi) => {
-    const response = await thunkApi.extra.expenseFetch("/expenses", {
+    const state = thunkApi.getState();
+    const date = new Date(state.expenses.displayParams.displayMonth);
+    const { from, to } = getRangeFromMonth(date.getFullYear(), date.getMonth());
+    const query = `date.from=${from}&date.to=${to}`;
+
+    const response = await thunkApi.extra.expenseFetch(`/expenses?${query}`, {
       credentials: "include",
     });
 
@@ -92,10 +103,21 @@ export const deleteExpense = appCreateAsyncThunk<void, string>(
   },
 );
 
+export const updateDisplayParams = appCreateAsyncThunk<void, DisplayParams>(
+  "expenses/updateDisplayParams",
+  async (params, thunkApi) => {
+    await thunkApi.dispatch(displayParamsUpdated(params));
+    await thunkApi.dispatch(fetchExpenses() as any);
+  },
+);
+
 const expenseSlice = createSlice({
   name: "expenses",
   initialState: {
     expenses: <ExpenseRecord[]>[],
+    displayParams: <DisplayParams>{
+      displayMonth: new Date().getTime(),
+    },
   },
   reducers: {
     expenseAdded: (store, arg: PayloadAction<ExpenseRecord>) => {
@@ -113,6 +135,9 @@ const expenseSlice = createSlice({
     },
     expenseDeleted: (store, arg: PayloadAction<string>) => {
       store.expenses = store.expenses.filter((exp) => exp._id !== arg.payload);
+    },
+    displayParamsUpdated: (store, arg: PayloadAction<DisplayParams>) => {
+      store.displayParams = arg.payload;
     },
   },
   extraReducers: (builder) => {
@@ -147,6 +172,7 @@ const expenseSlice = createSlice({
   },
 });
 
-export const { expenseAdded, expenseUpdated } = expenseSlice.actions;
+export const { expenseAdded, expenseUpdated, displayParamsUpdated } =
+  expenseSlice.actions;
 
 export const expenseReducer = expenseSlice.reducer;

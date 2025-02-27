@@ -7,14 +7,14 @@ import React, {
 import { NavLink, useNavigate } from "react-router";
 import FormField from "~/components/form-field/FormField";
 import RequiredFieldExplanation from "~/components/RequiredFieldExplanation";
-import { useFetch } from "~/hooks/use-fetch";
+import { useServiceDiscovery } from "~/hooks/use-service-discovery";
 import { Currency, CurrencyNames, CurrencySymbols } from "~/models/currency";
 
 const Signup = () => {
   const [formError, setFormError] = useState("");
   const [isPending, startTransition] = useTransition();
   const [formStatus, setFormStatus] = useState("initial");
-  const [authFetch] = useFetch("auth");
+  const authFetch = useServiceDiscovery("auth");
   const navigate = useNavigate();
 
   const handleSubmit = useCallback((e: FormEvent) => {

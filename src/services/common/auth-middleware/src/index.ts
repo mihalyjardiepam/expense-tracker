@@ -3,6 +3,7 @@ import passport from "passport";
 import {
   Strategy as JwtStrategy,
   StrategyOptionsWithoutRequest,
+  ExtractJwt,
 } from "passport-jwt";
 
 export interface AuthEnv {
@@ -21,13 +22,15 @@ function cookieExtractor(req: Request) {
 
 export function configure(passport: passport.PassportStatic, cfg: AuthEnv) {
   const passportOptions: StrategyOptionsWithoutRequest = {
-    jwtFromRequest: cookieExtractor,
+    jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: cfg.secret,
   };
 
   passport.use(
     "jwt",
     new JwtStrategy(passportOptions, (payload, done) => {
+      console.log({ payload });
+
       done(null, { id: payload.sub });
     }),
   );

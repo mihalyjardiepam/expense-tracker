@@ -1,4 +1,4 @@
-import {
+import React, {
   useCallback,
   useEffect,
   useRef,
@@ -69,4 +69,4 @@ const Dialog = ({
   );
 };
 
-export default Dialog;
+export default React.memo(Dialog);

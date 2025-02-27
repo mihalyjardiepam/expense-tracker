@@ -84,6 +84,14 @@ export class ExpenseService {
     userId: string,
     data: UpdateExpenseDto,
   ): Promise<boolean> {
+    console.log({
+      update: {
+        expenseId,
+        userId,
+        data,
+      },
+    });
+
     const result = await ExpenseRecord.updateOne(
       {
         _id: expenseId,
@@ -100,6 +108,8 @@ export class ExpenseService {
         },
       },
     );
+
+    console.log({ result });
 
     // If there aren't any updates, the _id was wrong, meaning we can return a
     // 404 error.

@@ -7,17 +7,11 @@ import morgan from "morgan";
 import { router } from "./router";
 import { ServiceConfig as Cfg } from "./config";
 import { Logger } from "./logger";
-import mongoose from "mongoose";
-import { configure as configureAuthMiddleware } from "expense-app-auth-middleware";
 import cors from "cors";
 
 if (existsSync(".env")) {
   dotenv.config();
 }
-
-// configureAuthMiddleware({
-//   secret: process.env.SECRET_KEY,
-// });
 
 const app = express();
 app.use(helmet());
@@ -38,14 +32,6 @@ const server = app.listen(9909, "localhost", async (err) => {
   if (err) {
     logger.error(`failed to start: ${err}`);
     return process.exit(1);
-  }
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URL);
-    logger.log("MongoDB connected");
-  } catch (error) {
-    logger.error(`failed to connect to MongoDB: ${error}`);
-    process.exit(2);
   }
 
   const address = server.address();

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { HydratedDocument } from "mongoose";
 import { Currency } from "./currency";
 
 export interface ValueWithColor {
@@ -6,7 +6,18 @@ export interface ValueWithColor {
   color: string;
 }
 
-const userSchema = new mongoose.Schema({
+export interface IUser {
+  name: string;
+  email: string;
+  registeredAt: number;
+  password: string;
+  defaultCurrency: Currency;
+  paymentMethods: ValueWithColor[];
+  paidTos: ValueWithColor[];
+  categories: ValueWithColor[];
+}
+
+const userSchema = new mongoose.Schema<IUser>({
   name: String,
   email: String,
   registeredAt: Number,
@@ -31,4 +42,22 @@ export interface UserDto {
   paymentMethods: ValueWithColor[];
   paidTos: ValueWithColor[];
   categories: ValueWithColor[];
+}
+
+export type UpdateUser = Pick<
+  UserDto,
+  "categories" | "name" | "paidTos" | "paymentMethods"
+>;
+
+export function userToDto(user: HydratedDocument<IUser>): UserDto {
+  return {
+    _id: user._id.toHexString(),
+    categories: user.categories as ValueWithColor[],
+    defaultCurrency: user.defaultCurrency,
+    email: user.email,
+    name: user.name,
+    paidTos: user.paidTos as ValueWithColor[],
+    paymentMethods: user.paymentMethods as ValueWithColor[],
+    registeredAt: user.registeredAt,
+  };
 }

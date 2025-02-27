@@ -8,14 +8,16 @@ import React, {
 import "./ExpenseTable.scss";
 import { useAppDispatch, useAppSelector } from "~/hooks/redux";
 import { deleteExpense, fetchExpenses } from "~/store/expense";
-import { timestampToDate } from "~/lib/timestamp-to-date";
+import { formatTimestampYYYYMMDD } from "~/lib/format-timestamp";
 import { CurrencySymbols } from "~/models/currency";
 import { UserContext } from "~/context/user-context";
 import Dialog from "../dialog/Dialog";
 import type { ExpenseRecord } from "~/models/expense";
 import ExpenseForm from "./ExpenseForm";
 import ConfirmDialog from "../ConfirmDialog/ConfirmDialog";
-import { useFetch } from "~/hooks/use-fetch";
+import { useServiceDiscovery } from "~/hooks/use-service-discovery";
+import { useSnackbar } from "notistack";
+import { useAuthentication } from "~/hooks/use-authentication";
 
 const format = new Intl.NumberFormat();
 
@@ -27,10 +29,10 @@ const ExpenseTable = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ExpenseRecord | null>(null);
-  const [expenseFetch] = useFetch("expense");
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
-    // any: typedefs are messed up in the library at the moment and there is
+    // any: typedefs are messed up in redux at the moment and there is
     // no accepted solution for this problem. I don't care anymore so I just
     // cast the thunk to any.
     // It's definitely not gonna bite me in the rear later.
@@ -80,14 +82,16 @@ const ExpenseTable = () => {
   const deleteSelectedItem = useCallback(async () => {
     if (selectedItem) {
       try {
-        dispatch(deleteExpense(selectedItem._id) as any);
+        await dispatch(deleteExpense(selectedItem._id) as any);
         setSelectedItem(null);
         setConfirmDialogOpen(false);
+
+        enqueueSnackbar("Successfully deleted record.", { variant: "success" });
       } catch (error) {
         console.error(error);
       }
     }
-  }, [selectedItem, setSelectedItem, expenseFetch]);
+  }, [selectedItem, setSelectedItem]);
 
   return (
     <>
@@ -115,7 +119,9 @@ const ExpenseTable = () => {
                 onClick={() => setSelection(expense)}
                 onKeyDown={(e) => handleKeyboardEvent(e, expense)}
               >
-                <td className="nobreak">{timestampToDate(expense.date)}</td>
+                <td className="nobreak">
+                  {formatTimestampYYYYMMDD(expense.date)}
+                </td>
                 <td>{expense.paidTo}</td>
                 <td>{expense.description}</td>
                 <td>{expense.category}</td>

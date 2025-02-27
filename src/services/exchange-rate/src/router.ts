@@ -1,3 +1,4 @@
+import passport from "passport";
 import { Router } from "express";
 import { getExchangeRate } from "./exchange-rate/controller";
 
@@ -8,5 +9,7 @@ router.get("/", (req, res) => {
     status: "OK",
   });
 });
+
+router.use("/exchange-rate", passport.authenticate("jwt", { session: false }));
 
 router.get("/exchange-rate/:from/:to", getExchangeRate);

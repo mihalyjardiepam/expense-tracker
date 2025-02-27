@@ -10,7 +10,7 @@ import {
 const service = new ExpenseService();
 
 export async function query(req: Request, res: Response) {
-  const userId = req.user["sub"];
+  const userId = req.user["id"];
   const expenseQuery: ExpenseQuery = {};
   const { query } = req;
 
@@ -59,7 +59,7 @@ export async function create(req: Request, res: Response) {
     return;
   }
 
-  const userId = req.user["sub"];
+  const userId = req.user["id"];
 
   const createData: CreateExpenseDto = {
     category: req.body["category"] || "",
@@ -84,7 +84,7 @@ export async function update(req: Request, res: Response) {
   }
 
   const expenseId = req.params["id"];
-  const userId = req.user["sub"];
+  const userId = req.user["id"];
 
   const updateData: UpdateExpenseDto = {
     category: req.body["category"] || "",
@@ -102,7 +102,7 @@ export async function update(req: Request, res: Response) {
 
 export async function del(req: Request, res: Response) {
   const expenseId = req.params["id"];
-  const userId = req.user["sub"];
+  const userId = req.user["id"];
 
   await service.deleteExpense(expenseId, userId);
   res.status(200).send();

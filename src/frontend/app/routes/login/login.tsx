@@ -10,7 +10,8 @@ import { NavLink, useNavigate } from "react-router";
 import FormField from "~/components/form-field/FormField";
 import RequiredFieldExplanation from "~/components/RequiredFieldExplanation";
 import { UserContext } from "~/context/user-context";
-import { useFetch } from "~/hooks/use-fetch";
+import { AUTH_TOKEN_LOCALSTORAGE_KEY } from "~/hooks/use-authentication";
+import { useServiceDiscovery } from "~/hooks/use-service-discovery";
 
 const Login = () => {
   const [isPending, startTransition] = useTransition();
@@ -49,13 +50,15 @@ const Login = () => {
       });
 
       if (response.ok) {
-        console.log("Successful log in!");
+        const token: string = await response.json();
+
+        localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_KEY, token);
       }
     });
   }, []);
 
   const [formError, setFormError] = useState("");
-  const [authFetch] = useFetch("auth");
+  const authFetch = useServiceDiscovery("auth");
   const navigate = useNavigate();
 
   return (

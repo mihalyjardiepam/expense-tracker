@@ -14,9 +14,12 @@ const Navbar = () => {
         <li className="nav-item">
           <NavLink to="/">Home</NavLink>
         </li>
-        <li className="nav-item">
-          <NavLink to="/dashboard">Dashboard</NavLink>
-        </li>
+        {user && (
+          <li className="nav-item">
+            <NavLink to="/dashboard">Dashboard</NavLink>
+          </li>
+        )}
+
         <li className="flex-spacer" aria-hidden="true"></li>
         {user ? (
           <li>

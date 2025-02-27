@@ -13,14 +13,15 @@ import { configure as configureAuthMiddleware } from "expense-app-auth-middlewar
 import { registerHeartbeat } from "./register-heartbeat";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import passport from "passport";
 
 if (existsSync(".env")) {
   dotenv.config();
 }
 
-// configureAuthMiddleware(passport, {
-//   secret: process.env.SECRET_KEY,
-// });
+configureAuthMiddleware(passport, {
+  secret: process.env.SECRET_KEY,
+});
 
 const SERVICE_REGISTRY_URI =
   process.env.SERVICE_REGISTRY_URI || "http://localhost:9909/heartbeat";

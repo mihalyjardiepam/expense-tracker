@@ -11,7 +11,7 @@ import FormField from "../form-field/FormField";
 import "./ExpenseForm.scss";
 import { UserContext } from "~/context/user-context";
 import { Currency, CurrencyNames } from "~/models/currency";
-import { useFetch } from "~/hooks/use-fetch";
+import { useServiceDiscovery } from "~/hooks/use-service-discovery";
 import { roundTo } from "~/lib/round-to";
 import MatIcon from "../mat-icon/MatIcon";
 import { useCachedSetting } from "~/hooks/use-cached-setting";
@@ -22,13 +22,10 @@ import type {
 } from "~/models/expense";
 import { isValidDate } from "~/lib/is-valid-date";
 import { useAppDispatch } from "~/hooks/redux";
-import {
-  createExpense,
-  expenseAdded,
-  expenseUpdated,
-  updateExpense,
-} from "~/store/expense";
-import { timestampToDate } from "~/lib/timestamp-to-date";
+import { createExpense, updateExpense } from "~/store/expense";
+import { formatTimestampYYYYMMDD } from "~/lib/format-timestamp";
+import { useSnackbar } from "notistack";
+import { useAuthentication } from "~/hooks/use-authentication";
 
 const LOCALSTORAGE_SYNC_SETTING_DEFAULT = "__exp_syncSettingDefaultKey";
 
@@ -39,9 +36,11 @@ export interface ExpenseFormProps {
 
 const ExpenseForm = ({ onClose, expense }: ExpenseFormProps) => {
   const [isPending, startTransition] = useTransition();
-  const [erFetch] = useFetch("exchange-rate");
-  const [expenseFetch] = useFetch("expense");
+  const exchangeRateFetch = useAuthentication(
+    useServiceDiscovery("exchange-rate"),
+  );
   const dispatch = useAppDispatch();
+  const { enqueueSnackbar } = useSnackbar();
 
   const user = useContext(UserContext);
 
@@ -50,7 +49,7 @@ const ExpenseForm = ({ onClose, expense }: ExpenseFormProps) => {
     expense ? expense.payment.currency : user!.defaultCurrency,
   );
   const [date, setDate] = useState(
-    timestampToDate(expense ? expense.date : new Date().getTime()),
+    formatTimestampYYYYMMDD(expense ? expense.date : new Date().getTime()),
   );
   const [paymentMethod, setPaymentMethod] = useState(
     expense ? expense.paymentMethod : "",
@@ -89,7 +88,7 @@ const ExpenseForm = ({ onClose, expense }: ExpenseFormProps) => {
         setExchangeRate(1);
       } else {
         startTransition(async () => {
-          const response = await erFetch(
+          const response = await exchangeRateFetch(
             `/exchange-rate/${value}/${user!.defaultCurrency}`,
             {
               credentials: "include",
@@ -166,87 +165,92 @@ const ExpenseForm = ({ onClose, expense }: ExpenseFormProps) => {
     [syncPaymentAmounts],
   );
 
-  const submitExpense = useCallback(
-    (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setFormError("");
+  const submitExpense = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setFormError("");
 
-      startTransition(async () => {
-        const data: Partial<ExpenseRecord> = expense
-          ? ({
-              paymentMethod,
-              paidTo,
-              category,
-              description,
-            } as Partial<UpdateExpense>)
-          : ({
-              paymentMethod,
-              paidTo,
-              category,
-              description,
-            } as Partial<CreateExpense>);
+    startTransition(async () => {
+      const data: Partial<ExpenseRecord> = expense
+        ? ({
+            paymentMethod,
+            paidTo,
+            category,
+            description,
+          } as Partial<UpdateExpense>)
+        : ({
+            paymentMethod,
+            paidTo,
+            category,
+            description,
+          } as Partial<CreateExpense>);
 
-        if (!date) {
-          return setFormError("Date is required.");
+      if (!date) {
+        return setFormError("Date is required.");
+      }
+
+      const convertedDate = new Date(date);
+      if (!isValidDate(convertedDate)) {
+        return setFormError("Invalid date.");
+      }
+      data.date = convertedDate.getTime();
+
+      if (!currency) {
+        return setFormError("Payment Details: Currency is required.");
+      }
+
+      if (currency === user!.defaultCurrency) {
+        data.payment = {
+          amount: paymentAmount,
+          convertedAmount: paymentAmount,
+          convertedTo: currency,
+          currency: currency,
+          exchangeRate: 1,
+        };
+      } else {
+        if (isNaN(exchangeRate)) {
+          return setFormError("Invalid exchange rate: Expected a number.");
         }
 
-        const convertedDate = new Date(date);
-        if (!isValidDate(convertedDate)) {
-          return setFormError("Invalid date.");
-        }
-        data.date = convertedDate.getTime();
-
-        if (!currency) {
-          return setFormError("Payment Details: Currency is required.");
+        if (isNaN(exchangedAmount)) {
+          return setFormError("Invalid converted amount: Expected a number.");
         }
 
-        if (currency === user!.defaultCurrency) {
-          data.payment = {
-            amount: paymentAmount,
-            convertedAmount: paymentAmount,
-            convertedTo: currency,
-            currency: currency,
-            exchangeRate: 1,
-          };
+        data.payment = {
+          amount: paymentAmount,
+          currency: currency,
+          convertedTo: user!.defaultCurrency,
+          convertedAmount: exchangedAmount,
+          exchangeRate: exchangeRate,
+        };
+      }
+
+      try {
+        if (expense == undefined) {
+          await dispatch(createExpense(data as CreateExpense) as any);
+
+          enqueueSnackbar("Successfully created record.", {
+            variant: "success",
+          });
         } else {
-          if (isNaN(exchangeRate)) {
-            return setFormError("Invalid exchange rate: Expected a number.");
-          }
+          await dispatch(
+            updateExpense({
+              id: expense._id,
+              data: data as UpdateExpense,
+            }) as any,
+          );
 
-          if (isNaN(exchangedAmount)) {
-            return setFormError("Invalid converted amount: Expected a number.");
-          }
-
-          data.payment = {
-            amount: paymentAmount,
-            currency: currency,
-            convertedTo: user!.defaultCurrency,
-            convertedAmount: exchangedAmount,
-            exchangeRate: exchangeRate,
-          };
+          enqueueSnackbar("Successfully updated record.", {
+            variant: "success",
+          });
         }
 
-        try {
-          if (expense == undefined) {
-            dispatch(createExpense(data as CreateExpense) as any);
-          } else {
-            dispatch(
-              updateExpense({
-                id: expense._id,
-                data: data as UpdateExpense,
-              }) as any,
-            );
-          }
-
-          onClose();
-        } catch (error) {
-          console.error(error);
-          setFormError(`Failed to save expense: ${JSON.stringify(error)}`);
-        }
-      });
-    },
-    [expenseFetch],
-  );
+        onClose();
+      } catch (error) {
+        console.error(error);
+        setFormError(`Failed to save expense: ${JSON.stringify(error)}`);
+      }
+    });
+  };
 
   return (
     <form className="expense-form" onSubmit={submitExpense}>

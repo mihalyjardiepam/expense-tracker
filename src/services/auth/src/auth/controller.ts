@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import { Signup } from "../models/signup";
-import { User, UserDto, ValueWithColor } from "../models/user";
+import {
+  UpdateUser,
+  User,
+  UserDto,
+  userToDto,
+  ValueWithColor,
+} from "../models/user";
 import crypto, { BinaryLike, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { Currency } from "../models/currency";
@@ -103,16 +109,7 @@ export async function login(req: Request, res: Response) {
     process.env.SECRET_KEY,
   );
 
-  res.cookie("expense-session", jwt, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    domain: "localhost",
-    maxAge: 4 * ONE_WEEK * 1000,
-    secure: false,
-  });
-
-  res.status(204).send();
+  res.status(200).json(jwt);
 }
 
 export async function getUser(req: Request, res: Response) {
@@ -125,18 +122,36 @@ export async function getUser(req: Request, res: Response) {
     return;
   }
 
-  const response: UserDto = {
-    _id: req.user["id"],
-    categories: user.categories as ValueWithColor[],
-    defaultCurrency: user.defaultCurrency,
-    email: user.email,
-    name: user.name,
-    paidTos: user.paidTos as ValueWithColor[],
-    paymentMethods: user.paymentMethods as ValueWithColor[],
-    registeredAt: user.registeredAt,
-  };
+  res.status(200).json(userToDto(user));
+}
 
-  res.status(200).json(response);
+export async function patchUser(req: Request, res: Response) {
+  const body: Partial<UpdateUser> = req.body;
+  const update: Record<string, any> = {};
+
+  (<(keyof UpdateUser)[]>["categories", "paidTos", "paymentMethods"]).forEach(
+    (key) => {
+      if (body[key] && Array.isArray(body[key])) {
+        update[key] = body[key];
+      }
+    },
+  );
+
+  if (body.name && typeof body.name === "string") {
+    update["name"] = body.name;
+  }
+
+  const result = await User.findOneAndUpdate(
+    {
+      _id: req.user["id"],
+    },
+    {
+      $set: update,
+    },
+    { returnDocument: "after" },
+  );
+
+  res.status(200).json(userToDto(result));
 }
 
 export async function comparePassword(password: string, passwordHash: string) {
