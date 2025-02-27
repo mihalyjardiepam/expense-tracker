@@ -1,0 +1,36 @@
+.expense-month-selector {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: stretch;
+  height: 60px;
+  background-color: var(--ui-dark);
+
+  .date {
+    flex: 1;
+    text-align: center;
+    font-size: 1.4em;
+  }
+
+  .stepper-button {
+    font-size: 2em;
+    border: none;
+    color: var(--ui-primary);
+    background-color: transparent;
+    cursor: pointer;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.2em;
+    transition: background-color 0.2s ease-in-out;
+
+    &:hover {
+      background-color: color-mix(in srgb, var(--ui-accent) 50%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 2px dashed white;
+    }
+  }
+}
