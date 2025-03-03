@@ -12,6 +12,7 @@ export const store = configureStore({
       thunk: {
         extraArgument: {
           expenseFetch: useAuthentication(useServiceDiscovery("expense")),
+          authFetch: useAuthentication(useServiceDiscovery("auth")),
         },
       },
     }),

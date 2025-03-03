@@ -10,5 +10,6 @@ export const appCreateAsyncThunk = createAsyncThunk.withTypes<{
   dispatch: AppDispatch;
   extra: {
     expenseFetch: typeof fetch;
+    authFetch: typeof fetch;
   };
 }>();
