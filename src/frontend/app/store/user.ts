@@ -1,4 +1,4 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { appCreateAsyncThunk } from "~/hooks/redux";
 import type { User } from "~/models/user";
 
@@ -20,7 +20,11 @@ const userSlice = createSlice({
   initialState: {
     user: <User | null>null,
   },
-  reducers: {},
+  reducers: {
+    setUser: (state, action: PayloadAction<User | null>) => {
+      state.user = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(loadUser.fulfilled, (state, action) => {
       state.user = action.payload;
@@ -28,5 +32,5 @@ const userSlice = createSlice({
   },
 });
 
-export const {} = userSlice.actions;
+export const { setUser } = userSlice.actions;
 export const userReducer = userSlice.reducer;

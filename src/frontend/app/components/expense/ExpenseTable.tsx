@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useState,
   type KeyboardEvent,
@@ -10,14 +9,11 @@ import { useAppDispatch, useAppSelector } from "~/hooks/redux";
 import { deleteExpense, fetchExpenses } from "~/store/expense";
 import { formatTimestampYYYYMMDD } from "~/lib/format-timestamp";
 import { CurrencySymbols } from "~/models/currency";
-import { UserContext } from "~/context/user-context";
 import Dialog from "../dialog/Dialog";
 import type { ExpenseRecord } from "~/models/expense";
 import ExpenseForm from "./ExpenseForm";
 import ConfirmDialog from "../ConfirmDialog/ConfirmDialog";
-import { useServiceDiscovery } from "~/hooks/use-service-discovery";
 import { useSnackbar } from "notistack";
-import { useAuthentication } from "~/hooks/use-authentication";
 
 const format = new Intl.NumberFormat();
 
@@ -25,7 +21,7 @@ const ExpenseTable = () => {
   const expenses = useAppSelector((state) => state.expenses.expenses);
   const dispatch = useAppDispatch();
   const [sum, setSum] = useState(0);
-  const user = useContext(UserContext);
+  const user = useAppSelector((state) => state.user.user);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ExpenseRecord | null>(null);

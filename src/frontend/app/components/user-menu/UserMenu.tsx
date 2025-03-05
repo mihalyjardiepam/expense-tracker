@@ -1,18 +1,17 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
   type MouseEvent as SyntheticMouseEvent,
 } from "react";
-import { UserContext } from "~/context/user-context";
 import MatIcon from "../mat-icon/MatIcon";
 import "./UserMenu.scss";
 import { NavLink } from "react-router";
+import { useAppSelector } from "~/hooks/redux";
 
 const UserMenu = () => {
-  const user = useContext(UserContext);
+  const user = useAppSelector((state) => state.user.user);
   const [showMenu, setShowMenu] = useState(false);
   const wrapperRef = useRef(null);
 

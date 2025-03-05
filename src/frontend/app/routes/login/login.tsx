@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useState,
   useTransition,
@@ -9,13 +8,13 @@ import React, {
 import { NavLink, useNavigate } from "react-router";
 import FormField from "~/components/form-field/FormField";
 import RequiredFieldExplanation from "~/components/RequiredFieldExplanation";
-import { UserContext } from "~/context/user-context";
+import { useAppSelector } from "~/hooks/redux";
 import { AUTH_TOKEN_LOCALSTORAGE_KEY } from "~/hooks/use-authentication";
 import { useServiceDiscovery } from "~/hooks/use-service-discovery";
 
 const Login = () => {
   const [isPending, startTransition] = useTransition();
-  const user = useContext(UserContext);
+  const user = useAppSelector((state) => state.user.user);
 
   useEffect(() => {
     if (user != null) {

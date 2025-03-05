@@ -10,13 +10,14 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.scss";
-import { UserContext } from "./context/user-context";
 import { useServiceDiscovery } from "./hooks/use-service-discovery";
 import type { User } from "./models/user";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { SnackbarProvider } from "notistack";
 import { useAuthentication } from "./hooks/use-authentication";
+import { setUser } from "./store/user";
+import { useEffect } from "react";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -76,13 +77,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App({ loaderData }: { loaderData: LoaderData }) {
+  store.dispatch(setUser(loaderData.user));
   return (
     <Provider store={store}>
-      <UserContext.Provider value={loaderData.user}>
-        <SnackbarProvider autoHideDuration={2000} preventDuplicate>
-          <Outlet />
-        </SnackbarProvider>
-      </UserContext.Provider>
+      <SnackbarProvider autoHideDuration={2000} preventDuplicate>
+        <Outlet />
+      </SnackbarProvider>
     </Provider>
   );
 }

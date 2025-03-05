@@ -2,10 +2,12 @@ import { useAuthentication } from "~/hooks/use-authentication";
 import { configureStore } from "@reduxjs/toolkit";
 import { expenseReducer } from "./expense";
 import { useServiceDiscovery } from "~/hooks/use-service-discovery";
+import { userReducer } from "./user";
 
 export const store = configureStore({
   reducer: {
     expenses: expenseReducer,
+    user: userReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

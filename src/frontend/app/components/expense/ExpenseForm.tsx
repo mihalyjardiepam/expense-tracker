@@ -1,6 +1,5 @@
 import React, {
   useCallback,
-  useContext,
   useState,
   useTransition,
   type ChangeEvent,
@@ -9,7 +8,6 @@ import React, {
 } from "react";
 import FormField from "../form-field/FormField";
 import "./ExpenseForm.scss";
-import { UserContext } from "~/context/user-context";
 import { Currency, CurrencyNames } from "~/models/currency";
 import { useServiceDiscovery } from "~/hooks/use-service-discovery";
 import { roundTo } from "~/lib/round-to";
@@ -21,7 +19,7 @@ import type {
   UpdateExpense,
 } from "~/models/expense";
 import { isValidDate } from "~/lib/is-valid-date";
-import { useAppDispatch } from "~/hooks/redux";
+import { useAppDispatch, useAppSelector } from "~/hooks/redux";
 import { createExpense, updateExpense } from "~/store/expense";
 import { formatTimestampYYYYMMDD } from "~/lib/format-timestamp";
 import { useSnackbar } from "notistack";
@@ -42,7 +40,7 @@ const ExpenseForm = ({ onClose, expense }: ExpenseFormProps) => {
   const dispatch = useAppDispatch();
   const { enqueueSnackbar } = useSnackbar();
 
-  const user = useContext(UserContext);
+  const user = useAppSelector((state) => state.user.user);
 
   // bound controls
   const [currency, setCurrency] = useState(
