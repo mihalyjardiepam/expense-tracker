@@ -11,3 +11,14 @@ export interface User {
   paidTos: ValueWithColor[];
   categories: ValueWithColor[];
 }
+
+export type UpdateUser = Pick<
+  User,
+  | "categories"
+  | "defaultCurrency"
+  | "email"
+  | "name"
+  | "paidTos"
+  | "paymentMethods"
+  | "registeredAt"
+>;

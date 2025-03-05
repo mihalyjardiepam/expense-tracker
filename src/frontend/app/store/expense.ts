@@ -86,9 +86,9 @@ export const updateExpense = appCreateAsyncThunk<
   }
 });
 
-export const deleteExpense = appCreateAsyncThunk<void, string>(
+export const deleteExpense = appCreateAsyncThunk(
   "expenses/deleteExpense",
-  async (expenseId, thunkApi) => {
+  async (expenseId: string, thunkApi) => {
     const response = await thunkApi.extra.expenseFetch(
       `/expenses/${expenseId}`,
       {
